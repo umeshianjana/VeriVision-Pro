@@ -53,7 +53,8 @@ VeriVision Pro is structured as a scalable B2B SaaS startup tool:
 
 ```bash
 # Clone repository
-git clone https://github.com/umeshianjana/VeriVision-Pro.gitcd VeriVision-Pro
+git clone https://github.com/umeshianjana/VeriVision-Pro.git
+cd VeriVision-Pro
 
 # Install dependencies
 pip install streamlit graphviz
