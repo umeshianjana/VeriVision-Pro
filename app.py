@@ -8,16 +8,27 @@ st.set_page_config(page_title="VeriVision Pro - AI RTL Visualizer & Verification
 st.title("⚡ VeriVision Pro: RTL Logic Visualizer & Static Linter")
 st.caption("Advanced AI-Assisted Hardware Verification Suite & EDA Flow Assistant for Digital Engineers.")
 
-# Sidebar Navigation & Settings
+# Sidebar Controls
 st.sidebar.header("⚙️ Control Panel")
 theme_choice = st.sidebar.selectbox("Schematic Theme", ["Default Light", "High Contrast", "Blueprint"])
-show_diagram = st.sidebar.checkbox("Generate RTL Schematic Diagram", value=True)
-run_linter = st.sidebar.checkbox("Run Static Linting Check", value=True)
 
 # Sample Code Library
 st.sidebar.markdown("---")
 st.sidebar.subheader("📚 Quick Verilog Templates")
 template = st.sidebar.radio("Select Template", ["2-to-1 MUX & FlipFlop", "Simple AND Gate", "Full Adder"])
+
+# Business Pricing Tiers in Sidebar
+st.sidebar.markdown("---")
+st.sidebar.subheader("💎 Subscription Tier")
+user_plan = st.sidebar.radio(
+    "Active Plan", 
+    ["🎓 Free (Open Source)", "⚡ Pro Designer ($19/mo)", "🏢 Enterprise ($149/mo)"])
+if user_plan == "🎓 Free (Open Source)":
+    st.sidebar.info("Free Plan Active: Basic RTL Schematic enabled. Upgrade to Pro for AI Linter.")
+elif user_plan == "⚡ Pro Designer ($19/mo)":
+    st.sidebar.success("Pro Active: AI Auto-Fix suggestions & static linter fully unlocked!")
+else:
+    st.sidebar.success("Enterprise Active: Full Suite, CI/CD linting & priority AI support unlocked!")
 
 sample_code = """module mux2to1 (
     input wire a,
@@ -91,11 +102,10 @@ tab1, tab2, tab3 = st.tabs(["🖼️ RTL Schematic & Logic Flow", "🔍 Linter &
 
 # TAB 1: SCHEMATIC
 with tab1:
-    if show_diagram and verilog_code.strip():
+    if verilog_code.strip():
         dot = graphviz.Digraph(comment='Verilog RTL Flow')
         dot.attr(rankdir='LR', size='10,6')
         
-        # Color Themes
         node_fill = "lightblue" if theme_choice == "Default Light" else "yellow" if theme_choice == "High Contrast" else "cyan"
         
         if inputs:
@@ -124,35 +134,38 @@ with tab1:
 
 # TAB 2: LINTER & AI FIXER
 with tab2:
-    st.subheader(f" static Analysis for Module: `{mod_name}`")
-    warnings = []
-    all_declared = set(inputs + outputs + wires + regs)
-    
-    for var in all_declared:
-        matches = len(re.findall(rf'\b{var}\b', verilog_code))
-        if matches <= 1:
-            warnings.append(f"Unused Signal: `{var}` is declared but never driven or referenced.")
-            
-    if "always @" in verilog_code and "=" in verilog_code and "<=" not in verilog_code:
-        warnings.append("Coding Style Violation: Sequential `always` block detected with blocking assignment (`=`) instead of (`<=`).")
-        
-    if warnings:
-        for w in warnings:
-            st.warning(f"⚠️ {w}")
-            
-        st.markdown("---")
-        st.subheader("💡 AI Auto-Fix Assistant Suggestion")
-        st.info("The AI engine suggests removing unused signals and switching to non-blocking assignments:")
-        
-        # Auto-fixed code generator preview
-        cleaned_code = verilog_code
-        for var in all_declared:
-            if len(re.findall(rf'\b{var}\b', verilog_code)) <= 1:
-                cleaned_code = re.sub(rf'.*{var}.*\n?', '', cleaned_code)
-                
-        st.code(cleaned_code, language="verilog")
+    if user_plan == "🎓 Free (Open Source)":
+        st.warning("🔒 Linter & AI Code Fixer is a **Pro / Enterprise Feature**.")
+        st.info("💡 Please select **⚡ Pro Designer ($19/mo)** or **🏢 Enterprise ($149/mo)** in the sidebar to unlock automated static linting & AI auto-fixing!")
     else:
-        st.success("✅ Clean Code! Zero static linting warnings detected in the design.")
+        st.subheader(f"🔍 Static Analysis for Module: `{mod_name}`")
+        warnings = []
+        all_declared = set(inputs + outputs + wires + regs)
+        
+        for var in all_declared:
+            matches = len(re.findall(rf'\b{var}\b', verilog_code))
+            if matches <= 1:
+                warnings.append(f"Unused Signal: `{var}` is declared but never driven or referenced.")
+                
+        if "always @" in verilog_code and "=" in verilog_code and "<=" not in verilog_code:
+            warnings.append("Coding Style Violation: Sequential `always` block detected with blocking assignment (`=`) instead of (`<=`).")
+            
+        if warnings:
+            for w in warnings:
+                st.warning(f"⚠️ {w}")
+                
+            st.markdown("---")
+            st.subheader("💡 AI Auto-Fix Assistant Suggestion")
+            st.info("The AI engine suggests removing unused signals and switching to non-blocking assignments:")
+            
+            cleaned_code = verilog_code
+            for var in all_declared:
+                if len(re.findall(rf'\b{var}\b', verilog_code)) <= 1:
+                    cleaned_code = re.sub(rf'.*{var}.*\n?', '', cleaned_code)
+                    
+            st.code(cleaned_code, language="verilog")
+        else:
+            st.success("✅ Clean Code! Zero static linting warnings detected in the design.")
 
 # TAB 3: HARDWARE AST METRICS
 with tab3:
